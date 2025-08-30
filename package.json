@@ -1,0 +1,75 @@
+{
+  "name": "prompt-generator",
+  "version": "1.0.0",
+  "description": "A local prompt generator tool with UI",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron src/main.js",
+    "dev": "NODE_ENV=development electron src/main.js",
+    "build": "electron-builder",
+    "build:mac": "electron-builder --mac",
+    "build:win": "electron-builder --win",
+    "build:linux": "electron-builder --linux"
+  },
+  "keywords": [
+    "prompt",
+    "generator",
+    "ai",
+    "electron"
+  ],
+  "author": "jin-taiyu",
+  "license": "MIT",
+  "dependencies": {
+  },
+  "devDependencies": {
+    "electron": "^25.0.0",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "com.cline.prompt-generator",
+    "productName": "Prompt Generator",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "package.json",
+      "!node_modules/**/*"
+    ],
+    "mac": {
+      "category": "public.app-category.utilities",
+      "icon": "build/icons/icon.icns",
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "artifactName": "${productName}-${version}-${arch}.${ext}",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist"
+    },
+    "win": {
+      "icon": "build/icons/icon.ico",
+      "target": [
+        "nsis",
+        "zip"
+      ],
+      "artifactName": "${productName}-${version}-${arch}.${ext}"
+    },
+    "linux": {
+      "icon": "build/icons",
+      "target": [
+        "AppImage",
+        "deb",
+        "rpm"
+      ],
+      "artifactName": "${productName}-${version}-${arch}.${ext}",
+      "category": "Utility"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}
