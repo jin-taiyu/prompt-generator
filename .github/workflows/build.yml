@@ -13,24 +13,28 @@ on:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
         include:
           - os: macos-latest
             platform: mac
+            artifact_name: "*.{dmg,zip}"
           - os: ubuntu-latest
             platform: linux
+            artifact_name: "*.{AppImage,deb,rpm}"
           - os: windows-latest
             platform: win
+            artifact_name: "*.{exe,zip}"
 
     runs-on: ${{ matrix.os }}
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Setup Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: '18'
         cache: 'npm'
@@ -38,36 +42,78 @@ jobs:
     - name: Install dependencies
       run: npm ci
 
+    - name: Install system dependencies (Linux)
+      if: matrix.platform == 'linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libarchive-tools
+
     - name: Build for ${{ matrix.platform }}
       run: npm run build:${{ matrix.platform }}
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        CSC_IDENTITY_AUTO_DISCOVERY: false
+
+    - name: List build artifacts
+      shell: bash
+      run: |
+        echo "Build artifacts in dist directory:"
+        ls -la dist/ || echo "No dist directory found"
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: prompt-generator-${{ matrix.platform }}
+        name: prompt-generator-${{ matrix.platform }}-${{ github.sha }}
         path: dist/
+        retention-days: 30
 
   release:
     needs: build
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
 
     steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
     - name: Download all artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
+      with:
+        path: ./artifacts
+
+    - name: Display structure of downloaded files
+      run: |
+        echo "Downloaded artifacts structure:"
+        find ./artifacts -type f -name "*" | head -20
+
+    - name: Prepare release assets
+      run: |
+        mkdir -p release-assets
+        find ./artifacts -type f \( -name "*.dmg" -o -name "*.zip" -o -name "*.exe" -o -name "*.AppImage" -o -name "*.deb" -o -name "*.rpm" \) -exec cp {} release-assets/ \;
+        echo "Release assets:"
+        ls -la release-assets/
+
+    - name: Generate changelog
+      id: changelog
+      run: |
+        if [ -f CHANGELOG.md ]; then
+          # Extract changelog for this version
+          sed -n "/^## \[${GITHUB_REF#refs/tags/}\]/,/^## \[/p" CHANGELOG.md | sed '$d' > current_changelog.md
+        else
+          echo "Release ${GITHUB_REF#refs/tags/}" > current_changelog.md
+          echo "" >> current_changelog.md
+          echo "See the full changelog at: [${GITHUB_REF#refs/tags/}](https://github.com/${{ github.repository }}/compare/$(git describe --tags --abbrev=0 HEAD^)...${GITHUB_REF#refs/tags/})" >> current_changelog.md
+        fi
 
     - name: Create Release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
-        files: |
-          prompt-generator-mac/dist/*.dmg
-          prompt-generator-mac/dist/*.zip
-          prompt-generator-win/dist/*.exe
-          prompt-generator-win/dist/*.zip
-          prompt-generator-linux/dist/*.AppImage
-          prompt-generator-linux/dist/*.deb
-          prompt-generator-linux/dist/*.rpm
+        files: release-assets/*
+        body_path: current_changelog.md
+        draft: false
+        prerelease: ${{ contains(github.ref, 'alpha') || contains(github.ref, 'beta') || contains(github.ref, 'rc') }}
+        generate_release_notes: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
