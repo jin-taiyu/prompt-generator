@@ -22,7 +22,10 @@
     "ai",
     "electron"
   ],
-  "author": "jin-taiyu",
+  "author": {
+    "name": "jin-taiyu",
+    "email": "222090218@stu.nau.edu.cn"
+  },
   "license": "MIT",
   "dependencies": {
   },
