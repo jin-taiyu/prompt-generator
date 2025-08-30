@@ -11,16 +11,18 @@ A local desktop application for generating effective AI prompts using meta-promp
 💾 **Local Storage**: Saves API settings and prompt history locally
 
 <p align="center">
-   <div style="display: flex; justify-content: center; gap: 24px; align-items: flex-start;">
-      <figure style="margin:0; text-align:center;">
-         <img src="docs/screenshot.png" alt="Light screenshot" width="400" style="box-shadow:0 2px 12px #ddd; border-radius:12px; border:1px solid #eee;" />
-         <figcaption style="color:#888; font-size:14px; margin-top:6px;">Light</figcaption>
-      </figure>
-      <figure style="margin:0; text-align:center;">
-         <img src="docs/screenshot-dark.png" alt="Dark screenshot" width="400" style="box-shadow:0 2px 12px #333; border-radius:12px; border:1px solid #333;" />
-         <figcaption style="color:#888; font-size:14px; margin-top:6px;">Dark</figcaption>
-      </figure>
-   </div>
+  <table>
+    <tr>
+      <td align="center">
+        <img src="docs/screenshot.png" alt="Light screenshot" width="400"/><br/>
+        <sub>Light</sub>
+      </td>
+      <td align="center">
+        <img src="docs/screenshot-dark.png" alt="Dark screenshot" width="400"/><br/>
+        <sub>Dark</sub>
+      </td>
+    </tr>
+  </table>
 </p>
 
 ## Usage
